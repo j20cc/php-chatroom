@@ -1,11 +1,15 @@
 <?php
 $serv = new swoole_websocket_server("0.0.0.0", 9501);
 
+$serv->set([
+    'daemonize' => 1
+]);
+
 $redis = new Redis();
 $redis->connect('127.0.0.1', 6379);
 
 $serv->on('open', function ($serv, $request) use ($redis) {
-	//获取用户列表
+	echo 'connected';
 });
 
 $serv->on('message', function ($serv, $request) use ($redis) {

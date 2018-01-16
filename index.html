@@ -2,7 +2,7 @@
 <html lang="zh-cn">
 <head>
 	<meta charset="utf-8"/>
-	<title>test websocket</title>
+	<title>php+swoole+redis聊天室</title>
 </head>
 	<style type="text/css">
 		*{ margin: 0px;padding: 0px;box-sizing: border-box; }
@@ -34,7 +34,7 @@
 		<div class="left">
 			<ul>
 				<li>
-					<img class="avatar" src="http://img5.imgtn.bdimg.com/it/u=2107448054,1525379799&fm=27&gp=0.jpg">
+					<img class="avatar" src="avatar/10.jpg">
 					<span class="username online">郑大世</span>
 				</li>
 			</ul>
@@ -67,7 +67,7 @@
 
 	<script src="https://cdn.bootcss.com/jquery/2.2.2/jquery.js"></script>
 	<script>
-		var websocket = new WebSocket("ws:192.168.33.10:9501");
+		var websocket = new WebSocket("ws:119.23.225.225:9501");
 		websocket.onopen = function(){
 			console.log('connected!')
 		}
@@ -87,6 +87,7 @@
 			}
 			if(data.type == 2){	//聊天
 				$('.chat').append('<li class="chat-item" style="border: none;"><img class="avatar" src="avatar/'+data.avatar+'.jpg"><div class="chat-msg">'+data.msg+'</div><div class="time">'+data.time+'</div></li>')
+				$('.right-body').scrollTop($('.right-body')[0].scrollHeight)
 			}
 		}
 		websocket.onerror = function(){
@@ -98,15 +99,22 @@
 		$('.name-bt').click(function(){
 			$('.rename').hide()
 			var username = $('#username').val()
-			var txt = {'type':'1','name':username}
-			websocket.send(JSON.stringify(txt));	//发送json
-			$('.body').show()
+			if(username.length<2){
+				alert("多打几个字吧！")
+				location.reload() 
+			} else {
+				var txt = {'type':'1','name':username}
+				websocket.send(JSON.stringify(txt));	//发送json
+				$('.body').show()
+			}
 		})
 
 		function send() {
 			var msg = $("#txt").val()
 			if(msg.length>20){
 				alert("超出字数限制啦！")
+			} else if(msg.length<1){
+				alert("多打几个字吧！")
 			} else {
 				var txt = {'type':'2','msg':msg}
 				websocket.send(JSON.stringify(txt));
