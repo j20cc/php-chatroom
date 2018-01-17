@@ -88,6 +88,7 @@
 			if(data.type == 2){	//聊天
 				$('.chat').append('<li class="chat-item" style="border: none;"><img class="avatar" src="avatar/'+data.avatar+'.jpg"><div class="chat-msg">'+data.msg+'</div><div class="time">'+data.time+'</div></li>')
 				$('.right-body').scrollTop($('.right-body')[0].scrollHeight)
+				playSound()
 			}
 		}
 		websocket.onerror = function(){
@@ -130,6 +131,30 @@
             }  
             return jsonLength;  
         } 
+
+        function playSound(){
+	      var borswer = window.navigator.userAgent.toLowerCase();
+	      if ( borswer.indexOf( "ie" ) >= 0 ){
+	        //IE内核浏览器
+	        var strEmbed = '<embed name="embedPlay" src="ding.wav" autostart="true" hidden="true" loop="false"></embed>';
+	        if ( $( "body" ).find( "embed" ).length <= 0 )
+	          $( "body" ).append( strEmbed );
+	        var embed = document.embedPlay;
+
+	        //浏览器不支持 audion，则使用 embed 播放
+	        embed.volume = 100;
+	        //embed.play();
+	      } else {
+	        //非IE内核浏览器
+	        var strAudio = "<audio id='audioPlay' src='ding.wav' hidden='true'>";
+	        if ( $( "body" ).find( "audio" ).length <= 0 )
+	          $( "body" ).append( strAudio );
+	        var audio = document.getElementById( "audioPlay" );
+
+	        //浏览器支持 audion
+	        audio.play();
+	      }
+	    }
 	</script>
 </body>
 </html>
