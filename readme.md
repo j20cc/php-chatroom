@@ -1,5 +1,8 @@
+## demo
+[http://chat.lukedever.cn/](http://chat.lukedever.cn/)
+
 ## 关于
-基于swoole的websocket客户端鼓捣出的一个简易的在线聊天室，在线用户信息（昵称，头像）存储在redis中，界面防的微信。
+基于swoole的websocket服务端鼓捣出的一个简易的在线聊天室，在线用户信息（昵称，头像）存储在redis中，界面防的微信。
 
 ## 怎么食用
 1. 下载或者克隆到本地

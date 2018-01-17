@@ -2,7 +2,7 @@
 $serv = new swoole_websocket_server("0.0.0.0", 9501);
 
 $serv->set([
-    'daemonize' => 1
+	'daemonize' => 1, //设为守护进程，否则关掉ssh就会退出
 ]);
 
 $redis = new Redis();
