@@ -2,7 +2,7 @@
 $serv = new swoole_websocket_server("0.0.0.0", 9501);
 
 $serv->set([
-	'daemonize' => 1,
+    'daemonize' => 1
 ]);
 
 $redis = new Redis();

@@ -51,7 +51,7 @@
 					<textarea id="txt"></textarea>
 				</div>
 				<div class="send" onclick="send()">
-					<span>发送</span>
+					<span>发送(Enter)</span>
 				</div>
 			</div>
 		</div>
@@ -122,6 +122,13 @@
 				$("#txt").val('')
 			}
 		}
+
+		$(document).keypress(function(e) {  
+	    	// 回车键事件  
+	        if(e.which == 13) {  
+	   			send(); 
+	        }  
+	   }); 
 
 		//获取json对象的元素个数
 		function getJsonLength(jsonData){
