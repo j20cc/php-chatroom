@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="utf-8"/>
+	<title>php+swoole+redis聊天室</title>
+</head>
+	<style type="text/css">
+		*{ margin: 0px;padding: 0px;box-sizing: border-box; }
+		.body{ width: 650px;height: 600px;margin: 20px auto;background-color: #eeeeee;display: none; }
+		.left{ width: 150px;height: 600px;float: left;background-color: #dddddd;border-right: 1px solid #c2c2c2;overflow-y: scroll; }
+		.left::-webkit-scrollbar{ display: none; }
+		.right{ width: 500px;height: 600px;float: left; }
+		.right-top{ height: 50px;width: 100%;border-bottom: 1px solid #c2c2c2; }
+		.right-body{ height: 450px;width: 100%;overflow-y: scroll; }
+		.right-body::-webkit-scrollbar{ display: none; }
+		.right-foot{ height: 100px;width: 100%;border-top: 1px solid #c2c2c2; }
+		.right-top h4{ line-height: 50px;margin-left: 20px; }
+		.input{ float: left;height: 100px;width: 400px; }
+		textarea{ resize: none;width: 100%;height: 98%;outline: none;background-color: #F0F0F0;border: none; }
+		.send{ float: left;width: 100px;height: 100px; }
+		.send span{ width: 50px;height: 40px;display: block;margin: 30px auto; }
+		ul{ list-style: none;display: block; }
+		ul>li{ height: 60px;border-bottom: 1px solid #c2c2c2;line-height: 60px;font-size: 14px;overflow: hidden; }
+		.avatar{ width: 40px;height: 40px;border-radius: 40px;margin: 10px 8px;float: left; }
+		.username{ float: left;color: gray;width: 90px;overflow: hidden;text-overflow: ellipsis;white-space: nowrap; }
+		.online{ color: green; }
+		.chat-msg{ width: 330px;height: 60px;float: left;overflow: hidden; }
+		.time{ width: 60px;height: 60px;font-size: 12px;float: right; }
+		.notify{ font-size: 12px;font-style: normal;color: gray;display: block;width: 100px;margin: 0 auto; }
+		.rename{ width: 250px;height: 100px;padding: 10px;background-color: #c2c2c2;display: none;position: absolute;top: 0px;left: 0;right: 0;bottom: 0px;margin: auto; }
+	</style>
+<body>
+	<div class="body">
+		<div class="left">
+			<ul>
+				<li>
+					<img class="avatar" src="avatar/10.jpg">
+					<span class="username online">郑大世</span>
+				</li>
+			</ul>
+		</div>
+		<div class="right">
+			<div class="right-top">
+				<h4>PHP技术群(<span class="user_count">0</span>)</h4>
+			</div>
+			<div class="right-body">
+				<ul class="chat"></ul>
+			</div>
+			<div class="right-foot">
+				<div class="input">
+					<textarea id="txt"></textarea>
+				</div>
+				<div class="send" onclick="send()">
+					<span>发送(Enter)</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="rename">
+		<p>请输入昵称:</p>
+		<div style="margin-top: 10px;">
+			<input type="text" id="username">
+			<button class="name-bt">确定</button>
+		</div>
+	</div>
+
+	<script src="https://cdn.bootcss.com/jquery/2.2.2/jquery.js"></script>
+	<script>
+		var websocket = new WebSocket("ws:119.23.225.225:9501");
+		websocket.onopen = function(){
+			console.log('connected!')
+		}
+		websocket.onclose = function(){
+			console.log('server closed!')
+		}
+		websocket.onmessage = function(e){
+			var data = JSON.parse(e.data)
+			if(data.type == 1){	//用户列表
+				var htmlstr = ''
+				$.each(data.list, function (k, v){
+				  htmlstr += '<li><img class="avatar" src="avatar/'+v.avatar+'.jpg"><span class="username online">'+v.name+'</span></li>'
+				})
+				$('.left ul').empty().append(htmlstr)
+				$('.user_count').html(getJsonLength(data.list))
+				$('.chat').append('<i class="notify">'+data.msg+'...</i>')
+			}
+			if(data.type == 2){	//聊天
+				$('.chat').append('<li class="chat-item" style="border: none;"><img class="avatar" src="avatar/'+data.avatar+'.jpg"><div class="chat-msg">'+data.msg+'</div><div class="time">'+data.time+'</div></li>')
+				$('.right-body').scrollTop($('.right-body')[0].scrollHeight)
+				playSound()
+			}
+		}
+		websocket.onerror = function(){
+			alert('连接失败')
+		}
+
+		//取名
+		$('.rename').show()
+		$('.name-bt').click(function(){
+			$('.rename').hide()
+			var username = $('#username').val()
+			if(username.length<2){
+				alert("多打几个字吧！")
+				location.reload() 
+			} else {
+				var txt = {'type':'1','name':username}
+				websocket.send(JSON.stringify(txt));	//发送json
+				$('.body').show()
+			}
+		})
+
+		function send() {
+			var msg = $("#txt").val()
+			if(msg.length>20){
+				alert("超出字数限制啦！")
+			} else if(msg.length<1){
+				alert("多打几个字吧！")
+			} else {
+				var txt = {'type':'2','msg':msg}
+				websocket.send(JSON.stringify(txt));
+				$("#txt").val('')
+			}
+		}
+
+		$(document).keypress(function(e) {  
+	    	// 回车键事件  
+	        if(e.which == 13) {  
+	   			send(); 
+	        }  
+	   }); 
+
+		//获取json对象的元素个数
+		function getJsonLength(jsonData){
+            var jsonLength = 0;  
+            for(var item in jsonData){  
+                jsonLength++;  
+            }  
+            return jsonLength;  
+        } 
+
+        function playSound(){
+	      var borswer = window.navigator.userAgent.toLowerCase();
+	      if ( borswer.indexOf( "ie" ) >= 0 ){
+	        //IE内核浏览器
+	        var strEmbed = '<embed name="embedPlay" src="ding.wav" autostart="true" hidden="true" loop="false"></embed>';
+	        if ( $( "body" ).find( "embed" ).length <= 0 )
+	          $( "body" ).append( strEmbed );
+	        var embed = document.embedPlay;
+
+	        //浏览器不支持 audion，则使用 embed 播放
+	        embed.volume = 100;
+	        //embed.play();
+	      } else {
+	        //非IE内核浏览器
+	        var strAudio = "<audio id='audioPlay' src='ding.wav' hidden='true'>";
+	        if ( $( "body" ).find( "audio" ).length <= 0 )
+	          $( "body" ).append( strAudio );
+	        var audio = document.getElementById( "audioPlay" );
+
+	        //浏览器支持 audion
+	        audio.play();
+	      }
+	    }
+	</script>
+</body>
+</html>
