@@ -14,14 +14,15 @@
 		.right-title{ height: 50px;line-height: 50px;width: 100%;padding-left: 10px;border-bottom: 1px solid #d2d2d2; }
 		#chat-container{ height: 398px;overflow-y: auto; }
 		#chat-container::-webkit-scrollbar{ display:none; }
-		.text{ height: 150px;border-top: 1px solid #d2d2d2; }
+		.text{ height: 150px;border-top: 1px solid #d2d2d2;position: relative; }
+
 		.express{ display: block;height: 30px;width: 100%;padding-left: 10px; }
 		.express li{ height: 30px;float: left;list-style: none;margin-right: 10px;cursor: pointer; }
 		.express img{ display: block;height: 25px;width: 25px;margin-top: 3px; }
 		.txt{ height: 80px;width: 100%;resize: none;border: none;background-color: #f2f2f2;padding: 10px;font-size: 15px; }
 		textarea:focus{ outline: none; }
 		.button{ height: 30px;width: 100%; }
-		button{ height: 30px;width: 80px;text-align: center;float: right;margin-right: 20px;margin-bottom: 10px; }
+		.send-btn{ height: 30px;width: 80px;text-align: center;float: right;margin-right: 20px;margin-bottom: 10px; }
 		.user{ margin: 10px 0px;height: 50px; }
 		.avatar{ width: 50px;height: 50px;float: left;margin-left: 10px; }
 		.user-des{ width: 130px;height: 50px;float: left;margin-left: 5px; }
@@ -32,6 +33,11 @@
 		.avatar-s{ width: 40px;height: 40px;float: left;margin-top: 5px; }
 		.chat-content{ float: left; }
 		.chat p{ display: block;max-width: 450px;margin-left: 10px;background-color: #5FB878;border-radius: 5px;padding: 5px; }
+		.name-div{ position: absolute;background: rgba(0,0,0,0.6);top: 0px;left: 0px;width: 100%;height: 100%;border-radius: 2px; }
+		.name-div p{ color: #fff;text-align: center;margin-top: 20px; }
+		.make-div{ width: 150px;margin: 10px auto; }
+		.make-div input{ width: 100px; }
+		.named{ z-index: -999; }
 	</style>
 </head>
 <body>
@@ -70,13 +76,22 @@
 				</ul>
 			</div>
 			<div class="text">
-				<ul class="express">
-					<li><img src="images/express.png"></li>
-					<li><img src="images/message.png"></li>
-				</ul>
-				<textarea class="txt" v-model="text" @keyup.13="send()"></textarea>
-				<div class="button">
-					<button @click="send()">发送(enter)</button>
+				<div class="chat-div">
+					<ul class="express">
+						<li><img src="images/express.png"></li>
+						<li><img src="images/message.png"></li>
+					</ul>
+					<textarea class="txt" v-model="text" @keyup.13="send()"></textarea>
+					<div class="button">
+						<button class="send-btn" @click="send()">发送(enter)</button>
+					</div>
+				</div>
+				<div class="name-div" v-bind:class="{ named: isNamed }">
+					<p>取个网名先，头像随机分配噢~</p>
+					<div class="make-div">
+						<input type="text" v-model="username">
+						<button class="name-btn" @click="makeName()">确定</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -87,6 +102,8 @@
 		var app = new Vue({
 			el: '#app',
 			data: {
+				isNamed: false,
+				username: '',
 				user_id: 1,
 				avatar_id: 1,
 				title: 'PHP聊天室',
@@ -110,6 +127,12 @@
 					setTimeout(function(){
 						document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight
 					}, 10)
+				},
+				makeName() {
+					if (this.username == '') {
+						alert('')
+					}
+					this.isNamed = true
 				}
 			},
 			mounted() {
