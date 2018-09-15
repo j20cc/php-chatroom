@@ -3,42 +3,7 @@
 <head>
 	<title>聊天</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<style type="text/css">
-		*{ margin: 0;padding: 0;box-sizing: border-box; }
-		li{ list-style: none; }
-		.container{ width: 800px;height: 600px;border: 1px solid #d2d2d2;margin: 60px auto;border-radius: 2px; }
-		.left{ width: 200px;height: 100%;background-color: #e2e2e2;float: left; }
-		.left ul{ height: 100%;overflow-y: auto; }
-		.left ul::-webkit-scrollbar{ display:none; }
-		.right{ width: 598px;height: 100%;float: left;background-color: #f2f2f2; }
-		.right-title{ height: 50px;line-height: 50px;width: 100%;padding-left: 10px;border-bottom: 1px solid #d2d2d2; }
-		#chat-container{ height: 398px;overflow-y: auto; }
-		#chat-container::-webkit-scrollbar{ display:none; }
-		.text{ height: 150px;border-top: 1px solid #d2d2d2;position: relative; }
-
-		.express{ display: block;height: 30px;width: 100%;padding-left: 10px; }
-		.express li{ height: 30px;float: left;list-style: none;margin-right: 10px;cursor: pointer; }
-		.express img{ display: block;height: 25px;width: 25px;margin-top: 3px; }
-		.txt{ height: 80px;width: 100%;resize: none;border: none;background-color: #f2f2f2;padding: 10px;font-size: 15px; }
-		textarea:focus{ outline: none; }
-		.button{ height: 30px;width: 100%; }
-		.send-btn{ height: 30px;width: 80px;text-align: center;float: right;margin-right: 20px;margin-bottom: 10px; }
-		.user{ margin: 10px 0px;height: 50px; }
-		.avatar{ width: 50px;height: 50px;float: left;margin-left: 10px; }
-		.user-des{ width: 130px;height: 50px;float: left;margin-left: 5px; }
-		.username{ height: 30px;line-height: 30px;width: 120px;text-overflow: ellipsis;overflow: hidden;white-space: nowrap; }
-		.user-time{ height: 20px;width: 120px;line-height: 20px;font-size: 12px;color: #2F4056;overflow: hidden;white-space: nowrap; }
-		.chat{ width: 578px;display: block;margin: 10px;overflow: hidden; }
-		.chat-time{ font-size: 12px;color: #2F4056;margin-left: 10px; }
-		.avatar-s{ width: 40px;height: 40px;float: left;margin-top: 5px; }
-		.chat-content{ float: left; }
-		.chat p{ display: block;max-width: 450px;margin-left: 10px;background-color: #5FB878;border-radius: 5px;padding: 5px; }
-		.name-div{ position: absolute;background: rgba(0,0,0,0.6);top: 0px;left: 0px;width: 100%;height: 100%;border-radius: 2px; }
-		.name-div p{ color: #fff;text-align: center;margin-top: 20px; }
-		.make-div{ width: 150px;margin: 10px auto; }
-		.make-div input{ width: 100px; }
-		.named{ z-index: -999; }
-	</style>
+	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 	<div class="container" id="app">
@@ -98,10 +63,27 @@
 	</div>
 
 	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+	<script type="text/javascript">
+		var websocket = new WebSocket("ws:192.168.33.104:9501");
+		websocket.onopen = function(){
+			console.log('connected!')
+		}
+		websocket.onclose = function(){
+			console.log('server closed!')
+		}
+		websocket.onmessage = function(e){
+			// var data = JSON.parse(e.data)
+			console.log(e)
+		}
+		websocket.onerror = function(){
+			alert('连接失败')
+		}
+	</script>
 	<script>
 		var app = new Vue({
 			el: '#app',
 			data: {
+				ws: websocket,
 				isNamed: false,
 				username: '',
 				user_id: 1,
@@ -117,11 +99,11 @@
 				chat_list: [
 					{ avatar_id: 1, time: '08:31', txt: '啊实打实大苏打啊实打实大苏打啊实打实大苏打啊实打啊实打实大苏打阿三大苏打撒旦发射点犯得上', user_id: 1 },
 					{ avatar_id: 1, time: '12:31', txt: '啊实打实大苏打啊实打实大苏打啊实打实大苏打啊实打', user_id: 2 }
-				],
-				websocket: ''
+				]
 			},
 			methods: {
 				send() {
+					this.request('chat', { avatar_id: this.avatar_id, time: '08:31', txt: this.text, user_id: this.user_id })
 					this.chat_list.push({ avatar_id: this.avatar_id, time: '08:31', txt: this.text, user_id: this.user_id })
 					this.text = ''
 					setTimeout(function(){
@@ -129,30 +111,20 @@
 					}, 10)
 				},
 				makeName() {
-					if (this.username == '') {
-						alert('')
+					if (this.username == '' || this.username.length < 2 || this.username.length > 6) {
+						alert('请输入2-6位长度的名字')
+						return false
 					}
-					this.isNamed = true
+					this.request('makeName', {name: this.username})
+					// this.isNamed = true
+				},
+				request(route, data) {
+					this.ws.send(JSON.stringify({"route":route, "params":data}))
 				}
 			},
 			mounted() {
-				// this.websocket = new WebSocket("ws:192.168.33.10:9501");
-				// this.websocket.onopen = function(){
-				// 	console.log('connected!')
-				// }
-				// this.websocket.onclose = function(){
-				// 	console.log('server closed!')
-				// }
-				// this.websocket.onmessage = function(e){
-				// 	// var data = JSON.parse(e.data)
-				// 	console.log(e)
-				// }
-				// this.websocket.onerror = function(){
-				// 	alert('连接失败')
-				// }
-				// var that = this
-				// setTimeout(function(){
-				// 	that.websocket.send(1231231231)
+				// setTimeout(()=>{
+				// 	this.ws.send('hello world');
 				// }, 5000)
 			}
 		})
