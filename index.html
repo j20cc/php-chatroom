@@ -63,7 +63,7 @@
 		<div class="dialog" style="display: none">{{alert}}</div>
 	</div>
 	<script src="https://cdn.phpbest.cn/assets/js/jquery-3.3.1.min.js"></script>
-	<script src="https://cdn.phpbest.cn/assets/js/vue.js"></script>
+	<script src="https://cdn.phpbest.cn/assets/js/vue.min.js"></script>
 	<script type="text/javascript">
 		var websocket = new WebSocket("ws:127.0.0.1:9501");
 		websocket.onopen = function(){
@@ -125,8 +125,8 @@
 					this.text = ''
 				},
 				makeName() {
-					if (this.username == '' || this.username.length < 2 || this.username.length > 6) {
-						alert('请输入2-6位长度的名字')
+					if (this.username == '' || this.username.length < 2 || this.username.length > 10) {
+						this.showMsg('请输入2-10位长度的名字')
 						return false
 					}
 					this.request('makeName', {name: this.username})
