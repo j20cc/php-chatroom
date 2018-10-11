@@ -1,8 +1,6 @@
 <?php
 
-function dump($arr = array())
+function makeName($data)
 {
-	echo "<pre>";
-	var_dump($arr);
-	echo "</pre>";
+    dump($data['params']);
 }

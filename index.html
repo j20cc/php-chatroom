@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>聊天</title>
+	<title>PHP聊天室-基于swoole+redis+vue</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
@@ -10,7 +10,7 @@
 		<div class="left">
 			<ul>
 				<li class="user" v-for="user in user_list">
-					<img class="avatar" src="images/avatars/1.jpg">
+					<img class="avatar" :src="avatar(user.avatar_id)">
 					<div class="user-des">
 						<p class="username">{{ user.name }}</p>
 						<p class="user-time">{{ user.time }}</p>
@@ -24,14 +24,14 @@
 				<ul>
 					<li class="chat" v-for="chat in chat_list">
 						<template v-if="chat.user_id !== user_id">
-							<img class="avatar-s" src="images/avatars/1.jpg">
+							<img class="avatar-s" :src="avatar(chat.avatar_id)">
 							<div class="chat-content">
 								<div class="chat-time">{{ chat.time }}</div>
 								<p>{{ chat.txt }}</p>
 							</div>
 						</template>
 						<template v-else>
-							<img class="avatar-s" src="images/avatars/1.jpg" style="float: right;">
+							<img class="avatar-s" :src="avatar(chat.avatar_id)" style="float: right;">
 							<div class="chat-content" style="float: right;margin-right: 10px;">
 								<div class="chat-time" style="text-align: right;">{{ chat.time }}</div>
 								<p>{{ chat.txt }}</p>
@@ -60,9 +60,10 @@
 				</div>
 			</div>
 		</div>
+		<div class="dialog" style="display: none">{{alert}}</div>
 	</div>
-
-	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+	<script src="https://cdn.phpbest.cn/assets/js/jquery-3.3.1.min.js"></script>
+	<script src="https://cdn.phpbest.cn/assets/js/vue.js"></script>
 	<script type="text/javascript">
 		var websocket = new WebSocket("ws:192.168.33.104:9501");
 		websocket.onopen = function(){
@@ -72,12 +73,35 @@
 			console.log('server closed!')
 		}
 		websocket.onmessage = function(e){
-			// var data = JSON.parse(e.data)
-			console.log(e)
+			var data = JSON.parse(e.data)
+			app.receive(data)
 		}
 		websocket.onerror = function(){
 			alert('连接失败')
 		}
+
+		function playSound(){
+	      var borswer = window.navigator.userAgent.toLowerCase();
+	      if ( borswer.indexOf( "ie" ) >= 0 ){
+	        //IE内核浏览器
+	        var strEmbed = '<embed name="embedPlay" src="ding.wav" autostart="true" hidden="true" loop="false"></embed>';
+	        if ( $("body").find("embed").length <= 0 )
+	          $("body").append( strEmbed );
+	        var embed = document.embedPlay;
+	        //浏览器不支持 audion，则使用 embed 播放
+	        embed.volume = 100;
+	        //embed.play();
+	      } else {
+	        //非IE内核浏览器
+	        var strAudio = "<audio id='audioPlay' src='ding.wav' hidden='true'>";
+	        if ( $( "body" ).find( "audio" ).length <= 0 )
+	          $( "body" ).append( strAudio );
+	        var audio = document.getElementById( "audioPlay" );
+
+	        //浏览器支持 audion
+	        audio.play();
+	      }
+	    }
 	</script>
 	<script>
 		var app = new Vue({
@@ -91,24 +115,14 @@
 				title: 'PHP聊天室',
 				user_count: 0,
 				text: '',
-				user_list: [
-					{ name: '小罗', time: '2013-08-30 09:30', avatar_id: 1 },
-					{ name: '小万', time: '2014-08-30 09:30', avatar_id: 1 },
-					{ name: '小正', time: '2017-08-30 09:30', avatar_id: 1 },
-				],
-				chat_list: [
-					{ avatar_id: 1, time: '08:31', txt: '啊实打实大苏打啊实打实大苏打啊实打实大苏打啊实打啊实打实大苏打阿三大苏打撒旦发射点犯得上', user_id: 1 },
-					{ avatar_id: 1, time: '12:31', txt: '啊实打实大苏打啊实打实大苏打啊实打实大苏打啊实打', user_id: 2 }
-				]
+				user_list: [],
+				chat_list: [],
+				alert: '你有新短消息'
 			},
 			methods: {
 				send() {
-					this.request('chat', { avatar_id: this.avatar_id, time: '08:31', txt: this.text, user_id: this.user_id })
-					this.chat_list.push({ avatar_id: this.avatar_id, time: '08:31', txt: this.text, user_id: this.user_id })
+					this.request('chat', { avatar_id: this.avatar_id, txt: this.text, user_id: this.user_id })
 					this.text = ''
-					setTimeout(function(){
-						document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight
-					}, 10)
 				},
 				makeName() {
 					if (this.username == '' || this.username.length < 2 || this.username.length > 6) {
@@ -116,16 +130,45 @@
 						return false
 					}
 					this.request('makeName', {name: this.username})
-					// this.isNamed = true
 				},
 				request(route, data) {
 					this.ws.send(JSON.stringify({"route":route, "params":data}))
+				},
+				avatar(fd) {
+					return 'images/avatars/'+fd+'.jpg'
+				},
+				showMsg(msg) {
+					this.alert = '新用户'+msg+'已上线'
+					$('.dialog').css('display', 'block')
+					setTimeout(function(){
+						$('.dialog').css('display', 'none')
+					}, 2500)
+				},
+				receive(data) {
+					if(data.type == 'users_list'){
+						// 更新用户列表
+						this.user_list = data.data
+					}
+					if(data.type == 'new_user' || data.type == 'myself'){
+						// 更新用户列表
+						this.user_list.push(data.data)
+						this.user_count = this.user_list.length
+						this.showMsg(data.data.name)
+					}
+					if(data.type == 'myself'){
+						// 设定自己的user_id
+						this.user_id = data.data.fd
+						this.avatar_id = data.data.avatar_id
+						this.isNamed = true
+					}
+					if(data.type == 'chat') {
+						this.chat_list.push(data.data)
+						if(this.user_id !== data.data.user_id) playSound()
+						setTimeout(function() {
+							document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight
+						}, 50)
+					}
 				}
-			},
-			mounted() {
-				// setTimeout(()=>{
-				// 	this.ws.send('hello world');
-				// }, 5000)
 			}
 		})
 	</script>

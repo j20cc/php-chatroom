@@ -26,9 +26,10 @@ textarea:focus{ outline: none; }
 .chat-time{ font-size: 12px;color: #2F4056;margin-left: 10px; }
 .avatar-s{ width: 40px;height: 40px;float: left;margin-top: 5px; }
 .chat-content{ float: left; }
-.chat p{ display: block;max-width: 450px;margin-left: 10px;background-color: #5FB878;border-radius: 5px;padding: 5px; }
+.chat p{ display: block;max-width: 450px;margin-left: 10px;background-color: #5FB878;border-radius: 5px;padding: 5px;word-break: all; }
 .name-div{ position: absolute;background: rgba(0,0,0,0.6);top: 0px;left: 0px;width: 100%;height: 100%;border-radius: 2px; }
 .name-div p{ color: #fff;text-align: center;margin-top: 20px; }
 .make-div{ width: 150px;margin: 10px auto; }
 .make-div input{ width: 100px; }
 .named{ z-index: -999; }
+.dialog{ display: block;clear: both;width: 180px;text-align: center;background-color: #5cadff;border-radius: 5px;color: #fff;word-break: break-all;    position: absolute;top: 50%;left: 50%; }
